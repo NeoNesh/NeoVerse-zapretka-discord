@@ -30,6 +30,7 @@ C:\NeoVerse\
 - Канал багов: #feedback
 Первый релиз уже здесь
 https://github.com/NeoNesh/NeoVerse-zapretka-discord/releases/tag/v1.0.0-beta
+
 ❤️ Поддержать разработку
 - Донаты: http://www.donationalerts.com/r/NeoNesh
 - YouTube: http://www.youtube.com/@NeoNesh_offical
