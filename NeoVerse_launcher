@@ -1,1 +1,79 @@
+@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+title 🇺🇸 USA Proxy Discord Launcher
 
+:: Проверка прав администратора
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Запуск от имени администратора...
+    powershell -Command "Start-Process '%~f0' -Verb runAs"
+    exit /b
+)
+
+echo ============================================
+echo 1. ЗАГРУЗКА СПИСКА БЕСПЛАТНЫХ USA ПРОКСИ
+echo ============================================
+:: Скачиваем список бесплатных SOCKS4 прокси для США
+:: Этот URL использует API ProxyScrape и возвращает список в формате IP:PORT (без заголовков)
+powershell -Command "try { Invoke-WebRequest -Uri 'https://api.proxyscrape.com/?request=displayproxies&proxytype=socks4&country=US&timeout=10000' -OutFile 'usa_proxies.txt' } catch { '' | Out-File 'usa_proxies.txt' }"
+
+if not exist usa_proxies.txt (
+    echo ❌ Ошибка: файл usa_proxies.txt не создан!
+    pause
+    exit /b
+)
+
+:: Проверяем, не пуст ли файл
+for %%x in (usa_proxies.txt) do if %%~zx==0 (
+    echo ⚠️ Файл usa_proxies.txt пуст.
+    pause
+    exit /b
+)
+
+echo.
+echo ============================================
+echo 2. ПОИСК РАБОЧЕГО ПРОКСИ ИЗ США
+echo ============================================
+set FOUND=0
+for /f "delims=" %%L in (usa_proxies.txt) do (
+    rem Каждая строка в формате IP:PORT
+    for /f "tokens=1,2 delims=:" %%A in ("%%L") do (
+        set "IP=%%A"
+        set "PORT=%%B"
+        echo Тестирую прокси: !IP!:!PORT!...
+        powershell -Command "(New-Object Net.Sockets.TcpClient).Connect('!IP!', !PORT!)" 2>nul
+        if !errorlevel! equ 0 (
+            set FOUND=1
+            set "PROXY_IP=!IP!"
+            set "PROXY_PORT=!PORT!"
+            echo ✅ Рабочий прокси найден: !PROXY_IP!:!PROXY_PORT!
+            goto :LAUNCH
+        )
+    )
+)
+
+:LAUNCH
+if %FOUND% neq 1 (
+    echo ❌ Не найден рабочий прокси из США.
+    pause
+    exit /b
+)
+
+echo.
+echo ============================================
+echo 3. ЗАПУСК DISCORD ЧЕРЕЗ ПРОКСИ
+echo ============================================
+:: Путь к Discord (обновитель, который запускает Discord)
+set "DISCORD_PATH=%LOCALAPPDATA%\Discord\Update.exe"
+if exist "%DISCORD_PATH%" (
+    echo Запускаю Discord с прокси socks4://%PROXY_IP%:%PROXY_PORT%...
+    start "" "%DISCORD_PATH%" --processStart Discord.exe --proxy-server="socks4://%PROXY_IP%:%PROXY_PORT%"
+) else (
+    echo ❌ Не найден Discord по пути: %DISCORD_PATH%
+)
+
+echo.
+echo Работа завершена. Нажмите любую клавишу для выхода...
+pause
+exit /b
