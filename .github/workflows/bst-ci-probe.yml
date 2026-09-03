@@ -1,0 +1,12 @@
+name: BST CI Probe
+
+on:
+  push:
+    branches:
+      - ci/bst-v143-compile
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "BST CI OK"
