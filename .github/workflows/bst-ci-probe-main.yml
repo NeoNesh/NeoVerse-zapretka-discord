@@ -1,0 +1,9 @@
+name: BST CI Main Probe
+
+on: [push]
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "BST CI MAIN OK"
